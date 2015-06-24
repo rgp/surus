@@ -3,6 +3,7 @@ require 'yaml'
 require 'factory_girl'
 require 'faker'
 require 'rspec'
+require 'pry-byebug'
 
 database_config = YAML.load_file(File.expand_path("../database.yml", __FILE__))
 ActiveRecord::Base.establish_connection database_config["test"]
@@ -27,6 +28,7 @@ class User < ActiveRecord::Base
     -> { where subject: 'foo' },
     foreign_key: :author_id,
     class_name: 'Post'
+  has_many :forums, through: :posts
 
   # association name is reserved word in PostgreSQL
   has_many :rows, foreign_key: :author_id, class_name: 'Post', table_name: 'posts'
@@ -37,6 +39,10 @@ class User < ActiveRecord::Base
     -> { where '1=2' },
     foreign_key: :author_id,
     class_name: 'Bio'
+  has_one :important_post,
+    -> { where subject: 'VERY IMPORTANT' },
+    foreign_key: :author_id,
+    class_name: 'Post'
 end
 
 class Bio < ActiveRecord::Base
