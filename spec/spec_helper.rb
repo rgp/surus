@@ -28,7 +28,10 @@ class User < ActiveRecord::Base
     -> { where subject: 'foo' },
     foreign_key: :author_id,
     class_name: 'Post'
-  has_many :forums, through: :posts
+  has_many :forums, through: :posts, inverse_of: :colaborators
+  has_many :superiors, through: :forums, source: :manager, inverse_of: :subordinates, class_name: 'User'
+  has_one :forum, foreign_key: :manager_id
+  has_many :subordinates, through: :forum, inverse_of: :superiors, source: :colaborators, class_name: 'User'
 
   # association name is reserved word in PostgreSQL
   has_many :rows, foreign_key: :author_id, class_name: 'Post', table_name: 'posts'
@@ -55,6 +58,8 @@ end
 
 class Forum < ActiveRecord::Base
   has_many :posts
+  belongs_to :manager, class_name: 'User'
+  has_many :colaborators, through: :posts, source: :author
 end
 
 class Post < ActiveRecord::Base

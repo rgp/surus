@@ -94,8 +94,10 @@ describe 'json' do
         posts = FactoryGirl.create_list :post, 2, author: user
         post_without_forum = FactoryGirl.create :post, author: user, subject: 'VERY IMPORTANT'
         user.reload
-        to_json = Oj.load User.all.to_json(include: [:posts, :important_post])
-        find_json = Oj.load User.all_json(include: [:posts, :important_post])
+        # to_json = Oj.load User.all.includes(:important_post).to_json(include: [:posts, :important_post])
+        # find_json = Oj.load User.all_json(include: [:posts, :important_post])
+        to_json = Oj.load user.to_json(include: [:posts, :important_post])
+        find_json = Oj.load User.find_json(user.id, include: [:posts, :important_post])
         expect(find_json).to eq(to_json)
       end
 
@@ -165,6 +167,16 @@ describe 'json' do
         user.reload
         to_json = Oj.load user.to_json(include: :forums)
         find_json = Oj.load User.find_json(user.id, include: :forums)
+        expect(find_json).to eq(to_json)
+      end
+
+      it 'includes entire nested has_many through association' do
+
+        user = FactoryGirl.create :user
+        posts = FactoryGirl.create_list :post, 2, author: user
+        user = User.includes(:superiors).find(user.id)
+        to_json = Oj.load user.to_json(include: :superiors)
+        find_json = Oj.load User.find_json(user.id, include: :superiors)
         expect(find_json).to eq(to_json)
       end
 

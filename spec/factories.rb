@@ -1,6 +1,7 @@
 FactoryGirl.define do
   factory :forum do
     name { Faker::Lorem.sentence }
+    manager
   end
 
   factory :post do
@@ -14,7 +15,7 @@ FactoryGirl.define do
     sequence(:name) { |n| "#{Faker::Lorem.word} - #{n}" }
   end
 
-  factory :user, aliases: [:author] do
+  factory :user, aliases: [:author, :manager] do
     name { Faker::Internet.user_name }
     email { Faker::Internet.email }
     after(:build) do |user|

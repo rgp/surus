@@ -2,24 +2,21 @@ module Surus
   module JSON
     class HasManyThroughScopeBuilder < AssociationScopeBuilder
       def scope
-        case association
-        when ActiveRecord::Reflection::HasOneReflection
-          return HasOneScopeBuilder.new(outside_scope, association).scope
-        when ActiveRecord::Reflection::BelongsToReflection
-          return BelongsToScopeBuilder.new(outside_scope, association).scope
-        when ActiveRecord::Reflection::HasManyReflection
-          return HasManyScopeBuilder.new(outside_scope, association).scope
-        when ActiveRecord::Reflection::HasAndBelongsToManyReflection
-          return HasAndBelongsToManyScopeBuilder.new(outside_scope, association).scope
-        when ActiveRecord::Reflection::ThroughReflection
-          return HasManyThroughScopeBuilder.new(outside_scope, association.source_reflection).scope
-        end
-        # binding.pry
-        # # s = association
-        # #   .klass
-        # #   .where("#{outside_primary_key}=#{association_foreign_key}")
-        # s = s.instance_eval(&association.scope) if association.scope
-        # s
+        raise "Inverse Needed for #{association.name}" unless association.inverse_of
+        s = association
+          .klass
+          .joins(association.inverse_of.name)
+        s = s.where(join_table_name(s) => outside_scope.where_values_hash)
+        s = s.instance_eval(&association.scope) if association.scope
+        s
+        # s = association.delegate_reflection.association_scope_cache(connection,nil).query_builder.sql_for([],nil)
+        # s.gsub!(/\$1/,outside_primary_key)
+        # "select array_to_json(coalesce(array_agg(row_to_json(t)), '{}')) from (#{s}) t"
+      end
+
+      def join_table_name(s)
+        return outside_scope.table.name unless association.klass == association.inverse_of.klass
+        (s.joins_values + [s.table.name]).join "_"
       end
 
       def outside_primary_key

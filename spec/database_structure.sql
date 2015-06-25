@@ -87,6 +87,7 @@ DROP TABLE IF EXISTS forums CASCADE;
 
 CREATE TABLE forums(
   id serial PRIMARY KEY,
+  manager_id integer NOT NULL REFERENCES users,
   name varchar NOT NULL
 );
 
